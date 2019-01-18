@@ -11,10 +11,12 @@ export BUILDPACK_DIR=`dirname $(readlink -f ${BASH_SOURCE%/*})`
 source "$BUILDPACK_DIR/scripts/install_go.sh"
 output_dir=$(mktemp -d -t finalizeXXX)
 
+# allow apps to specify cgo flags and set up /app symlink so things like CGO_CFLAGS=-I/app/... work
+ln -s "$BUILD_DIR" /app/code
+
 echo "-----> Running go build finalize"
 pushd $BUILDPACK_DIR
 GOROOT=$GoInstallDir/go $GoInstallDir/go/bin/go build -mod=vendor -o $output_dir/finalize ./src/go/finalize/cli
 popd
 
 $output_dir/finalize "$BUILD_DIR" "$CACHE_DIR" "$DEPS_DIR" "$DEPS_IDX" "$PROFILE_DIR"
-
